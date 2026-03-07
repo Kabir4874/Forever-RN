@@ -1,9 +1,13 @@
-import { BANNERS } from "@/assets/assets";
+import { BANNERS, dummyProducts } from "@/assets/assets";
+import CategoryItem from "@/components/CategoryItem";
 import Header from "@/components/Header";
+import ProductCard from "@/components/ProductCard";
 import { CATEGORIES } from "@/constants";
+import { Product } from "@/constants/types";
 import { useRouter } from "expo-router";
-import React, { useState } from "react";
+import React, { useEffect, useState } from "react";
 import {
+  ActivityIndicator,
   Dimensions,
   Image,
   ScrollView,
@@ -18,7 +22,18 @@ const { width } = Dimensions.get("window");
 export default function Home() {
   const router = useRouter();
   const [activeBannerIndex, setActiveBannerIndex] = useState(0);
+  const [products, setProducts] = useState<Product[]>([]);
+  const [loading, setLoading] = useState(true);
   const categories = [{ id: "all", name: "All", icon: "grid" }, ...CATEGORIES];
+
+  const fetchProducts = async () => {
+    setProducts(dummyProducts);
+    setLoading(false);
+  };
+
+  useEffect(() => {
+    fetchProducts();
+  }, []);
 
   return (
     <SafeAreaView className="flex-1" edges={["top"]}>
@@ -55,6 +70,9 @@ export default function Home() {
                   className="w-full h-full"
                   resizeMode="cover"
                 />
+
+                <View className="absolute inset-0 bg-black/40" />
+
                 <View className="absolute bottom-4 left-4 z-10">
                   <Text className="text-white text-2xl font-bold">
                     {banner.title}
@@ -68,7 +86,6 @@ export default function Home() {
                     </Text>
                   </TouchableOpacity>
                 </View>
-                <View className="absolute inset-0 bg-black/40" />
               </View>
             ))}
           </ScrollView>
@@ -91,9 +108,54 @@ export default function Home() {
 
           <ScrollView horizontal showsHorizontalScrollIndicator={false}>
             {categories.map((cat: any) => (
-              <Text key={cat.id}>{cat.name}</Text>
+              <CategoryItem
+                key={cat.id}
+                item={cat}
+                isSelected={false}
+                onPress={() =>
+                  router.push({
+                    pathname: "/shop",
+                    params: { category: cat.id === "all" ? "" : cat.name },
+                  })
+                }
+              />
             ))}
           </ScrollView>
+        </View>
+
+        {/* Popular products  */}
+        <View className="mb-8">
+          <View className="flex-row justify-between items-center mb-4">
+            <Text className="text-xl font-bold text-primary">Popular</Text>
+            <TouchableOpacity onPress={() => router.push("/shop")}>
+              <Text className="text-secondary text-sm">Sell All</Text>
+            </TouchableOpacity>
+          </View>
+
+          {loading ? (
+            <ActivityIndicator size="large" />
+          ) : (
+            <View className="flex-row flex-wrap justify-between">
+              {products.slice(0, 4).map((product) => (
+                <ProductCard key={product._id} product={product} />
+              ))}
+            </View>
+          )}
+        </View>
+
+        {/* Newsletter CTA  */}
+        <View className="bg-gray-100 p-6 rounded-2xl mb-20 items-center">
+          <Text className="text-2xl font-bold text-primary">
+            Join the Revolution
+          </Text>
+          <Text className="text-secondary text-center mb-4">
+            Subscribe to our newsletter and get 10% off on your first purchase.
+          </Text>
+          <TouchableOpacity className="bg-primary w-4/5 py-3 rounded-full items-center">
+            <Text className="text-white font-medium text-base">
+              Subscribe Now
+            </Text>
+          </TouchableOpacity>
         </View>
       </ScrollView>
     </SafeAreaView>
